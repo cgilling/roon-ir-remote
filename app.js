@@ -1,8 +1,11 @@
-var
-    debug = require('debug')('roon-extension-denon'),
-    debug_keepalive = require('debug')('roon-extension-denon:keepalive'), RoonApi = require("node-roon-api"),
+var RoonApi = require("node-roon-api"),
     RoonApiStatus = require("node-roon-api-status"),
     RoonApiVolumeControl = require('node-roon-api-volume-control')
+
+var argv = require('minimist')(process.argv.slice(2));
+function is_production() {
+    return argv.hasOwnProperty('production') && argv['production'] === 'true'
+}
 
 var roon = new RoonApi({
     extension_id: 'com.github.cgilling.roon-ir-volume',
@@ -11,28 +14,11 @@ var roon = new RoonApi({
     publisher: 'Christopher Gilling',
     email: 'cgilling@gmail.com',
     website: 'https://github.com/cgilling/roon-ir-volume',
-    /*
-        core_paired: function (core) {
-            let transport = core.services.RoonApiTransport;
-            transport.subscribe_zones(function (cmd, data) {
-                console.log(core.core_id,
-                    core.display_name,
-                    core.display_version,
-                    "-",
-                    cmd,
-                    JSON.stringify(data, null, '  '));
-            });
-        },
-    
-        core_unpaired: function (core) {
-            console.log(core.core_id,
-                core.display_name,
-                core.display_version,
-                "-",
-                "LOST");
-        }
-        */
 });
+
+if (is_production()) {
+    roon.log_level = 'none'
+}
 
 var svc_status = new RoonApiStatus(roon);
 var svc_volume_control = new RoonApiVolumeControl(roon);
@@ -56,10 +42,10 @@ function setup_volume_control() {
         control_key: 1,
 
         set_volume: function (req, mode, value) {
-            debug("set_volume: mode=%s value=%d", mode, value);
+            console.log("set_volume:", mode, value);
         },
         set_mute: function (req, inAction) {
-            debug("set_mute: action=%s", inAction);
+            console.log("set_mute:", inAction);
         }
     };
     volume_control = svc_volume_control.new_device(device);
