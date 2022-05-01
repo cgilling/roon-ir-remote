@@ -1,4 +1,4 @@
-var IRControl = require('lirc_node'),
+var IRRemote = require('./ir-remote'),
     RoonApi = require("node-roon-api"),
     RoonApiStatus = require("node-roon-api-status"),
     RoonApiVolumeControl = require('node-roon-api-volume-control')
@@ -36,17 +36,17 @@ var volume_state = {
     volume_type: "incremental",
 };
 
-var ir_control
-const ir_remote_name = 'schiit_freya',
-    ir_volume_up_cmd = 'KEY_VOLUMEUP',
-    ir_volume_down_cmd = 'KEY_VOLUMEDOWN';
 
-function setup_ir_control() {
-    IRControl.init()
-    ir_control = IRControl
+var irRemote
+const irRemoteName = 'schiit_freya',
+    irVolumeUpCommand = 'KEY_VOLUMEUP',
+    irVolumeDownCommand = 'KEY_VOLUMEDOWN';
+
+function setupIRRemote() {
+    irRemote = new IRRemote({ remoteName: irRemoteName })
 }
 
-setup_ir_control()
+setupIRRemote()
 
 var volume_control;
 
@@ -58,12 +58,12 @@ function setup_volume_control() {
         set_volume: function (req, mode, value) {
             console.log("received set_volume:", mode, value);
             if (value > 0) {
-                ir_control.irsend.send_once(ir_remote_name, ir_volume_up_cmd, function () {
-                    console.log("Sent Volume Up");
+                irRemote.sendCommand(irVolumeUpCommand, function (err) {
+                    console.log("Sent Volume Up", err);
                 });
             } else {
-                ir_control.irsend.send_once(ir_remote_name, ir_volume_down_cmd, function () {
-                    console.log("Sent Volume Down");
+                irRemote.sendCommand(irVolumeDownCommand, function (err) {
+                    console.log("Sent Volume Down", err);
                 });
             }
 
